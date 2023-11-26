@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	NodeTypeUnknown NodeType = 0x00 + iota
+	NodeTypeUnspecified NodeType = 0x00 + iota
 	NodeTypeWireGuard
 	NodeTypeV2Ray
 )
@@ -22,12 +22,12 @@ func NewNodeTypeFromString(v string) NodeType {
 	v = strings.ToLower(v)
 
 	switch v {
-	case "wire_guard":
+	case "wireguard":
 		return NodeTypeWireGuard
 	case "v2ray":
 		return NodeTypeV2Ray
 	default:
-		return NodeTypeUnknown
+		return NodeTypeUnspecified
 	}
 }
 
@@ -38,18 +38,18 @@ func NewNodeTypeFromUInt64(v uint64) NodeType {
 	case 2:
 		return NodeTypeV2Ray
 	default:
-		return NodeTypeUnknown
+		return NodeTypeUnspecified
 	}
 }
 
 func (z NodeType) String() string {
 	switch z {
 	case NodeTypeWireGuard:
-		return "wire_guard"
+		return "wireguard"
 	case NodeTypeV2Ray:
 		return "v2ray"
 	default:
-		return "unknown"
+		return "unspecified"
 	}
 }
 
