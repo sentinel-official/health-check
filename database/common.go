@@ -85,7 +85,7 @@ func Drop(ctx context.Context, c *mongo.Collection) error {
 	return c.Drop(ctx)
 }
 
-func Find(ctx context.Context, c *mongo.Collection, filter, v interface{}, opts ...*options.FindOptions) error {
+func FindAll(ctx context.Context, c *mongo.Collection, filter, v interface{}, opts ...*options.FindOptions) error {
 	now := time.Now()
 	defer func() {
 		log.Println(c.Name(), "Find", time.Since(now))
