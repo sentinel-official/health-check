@@ -6,9 +6,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -139,6 +143,8 @@ func updateNodeInfos(ctx *context.Context, timeout time.Duration) error {
 }
 
 func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDenom string) error {
+	log.Println("updateSubscriptions")
+
 	fromAddr, err := ctx.FromAddr()
 	if err != nil {
 		return err
@@ -160,8 +166,8 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 	)
 
 	for i := 0; i < len(subscriptions); i++ {
-		if subscriptions[i].GetStatus().Equal(hubtypes.StatusActive) {
-			ids = append(ids, subscriptions[i].GetID())
+		if !subscriptions[i].GetStatus().Equal(hubtypes.StatusActive) {
+			continue
 		}
 
 		filter := bson.M{
@@ -173,11 +179,14 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 			return err
 		}
 		if record == nil {
+			log.Println("MsgCancelRequest", subscriptions[i].GetID())
 			msgs = append(msgs, &subscriptiontypes.MsgCancelRequest{
 				From: bech32FromAddr,
 				ID:   subscriptions[i].GetID(),
 			})
 		}
+
+		ids = append(ids, subscriptions[i].GetID())
 	}
 
 	filter := bson.M{
@@ -210,14 +219,14 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 			"$exists": false,
 		},
 	}
-	opts := options.Find().SetSort(bson.D{{"addr", 1}}).SetLimit(1)
 
-	records, err := database.RecordFindAll(ctx, filter, opts)
+	records, err := database.RecordFindAll(ctx, filter)
 	if err != nil {
 		return err
 	}
 
 	for i := 0; i < len(records); i++ {
+		log.Println("MsgSubscribeRequest", records[i].Addr)
 		msgs = append(msgs, &nodetypes.MsgSubscribeRequest{
 			From:        bech32FromAddr,
 			NodeAddress: records[i].Addr,
@@ -290,6 +299,8 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 }
 
 func updateSessions(ctx *context.Context) error {
+	log.Println("updateSessions")
+
 	fromAddr, err := ctx.FromAddr()
 	if err != nil {
 		return err
@@ -311,8 +322,8 @@ func updateSessions(ctx *context.Context) error {
 	)
 
 	for i := 0; i < len(sessions); i++ {
-		if sessions[i].Status.Equal(hubtypes.StatusActive) {
-			ids = append(ids, sessions[i].ID)
+		if !sessions[i].Status.Equal(hubtypes.StatusActive) {
+			continue
 		}
 
 		filter := bson.M{
@@ -324,12 +335,15 @@ func updateSessions(ctx *context.Context) error {
 			return err
 		}
 		if record == nil {
+			log.Println("MsgEndRequest", sessions[i].ID)
 			msgs = append(msgs, &sessiontypes.MsgEndRequest{
 				From:   bech32FromAddr,
 				ID:     sessions[i].ID,
 				Rating: 0,
 			})
 		}
+
+		ids = append(ids, sessions[i].ID)
 	}
 
 	filter := bson.M{
@@ -368,6 +382,7 @@ func updateSessions(ctx *context.Context) error {
 	}
 
 	for i := 0; i < len(records); i++ {
+		log.Println("MsgStartRequest", records[i].SubscriptionID)
 		msgs = append(msgs, &sessiontypes.MsgStartRequest{
 			From:    bech32FromAddr,
 			ID:      records[i].SubscriptionID,
@@ -438,6 +453,8 @@ func updateSessions(ctx *context.Context) error {
 }
 
 func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
+	log.Println("updateClientConfigs")
+
 	fromAddr, err := ctx.FromAddr()
 	if err != nil {
 		return err
@@ -595,6 +612,8 @@ func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
 }
 
 func updateClients(ctx *context.Context) error {
+	log.Println("updateClients")
+
 	filter := bson.M{
 		"client_config": bson.M{
 			"$exists": true,
@@ -616,9 +635,22 @@ func updateClients(ctx *context.Context) error {
 		return err
 	}
 
-	group := errgroup.Group{}
+	group := &errgroup.Group{}
 	for i := 0; i < len(records); i++ {
+		nodeAddr := records[i].Addr
 		group.Go(func() error {
+			args := strings.Split(
+				fmt.Sprintf("run --privileged --rm --tty health-check-client main --address=%s --database.uri=mongodb://172.17.0.1:27017", nodeAddr),
+				" ")
+			cmd := exec.Command("docker", args...)
+			cmd.Stderr = os.Stderr
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+
+			if err := cmd.Run(); err != nil {
+				return err
+			}
+
 			return nil
 		})
 	}
