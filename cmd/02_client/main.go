@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -72,7 +73,9 @@ func main() {
 			}
 			update := bson.M{}
 
-			_, err = geoip.Location(transport)
+			location, err := geoip.Location(transport)
+			log.Println(location, err)
+
 			if err != nil {
 				update = bson.M{
 					"$set": bson.M{
