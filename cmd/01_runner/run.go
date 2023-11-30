@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -690,7 +691,7 @@ func updateClients(ctx *context.Context) error {
 			cmd := exec.Command("docker", args...)
 			cmd.Stderr = os.Stderr
 			cmd.Stdin = os.Stdin
-			cmd.Stdout = os.Stdout
+			cmd.Stdout = io.Discard
 
 			if err := cmd.Run(); err != nil {
 				return err
