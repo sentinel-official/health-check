@@ -228,6 +228,7 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 	}
 
 	filter = bson.M{
+		"info_fetch_error": "",
 		"gigabyte_price": bson.M{
 			"$lt": maxGigabytePrice,
 		},
