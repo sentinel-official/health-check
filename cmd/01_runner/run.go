@@ -167,6 +167,7 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 
 	for i := 0; i < len(subscriptions); i++ {
 		if !subscriptions[i].GetStatus().Equal(hubtypes.StatusActive) {
+			log.Println(subscriptions[i].GetID(), subscriptions[i].GetStatus())
 			continue
 		}
 
@@ -343,6 +344,7 @@ func updateSessions(ctx *context.Context) error {
 
 	for i := 0; i < len(sessions); i++ {
 		if !sessions[i].Status.Equal(hubtypes.StatusActive) {
+			log.Println(sessions[i].ID, sessions[i].Status)
 			continue
 		}
 
