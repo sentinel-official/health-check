@@ -99,6 +99,8 @@ func updateNodeInfos(ctx *context.Context, timeout time.Duration) error {
 	}
 
 	group := &errgroup.Group{}
+	group.SetLimit(64)
+
 	for i := 0; i < len(nodes); i++ {
 		var (
 			nodeAddr  = nodes[i].Addr
@@ -115,14 +117,16 @@ func updateNodeInfos(ctx *context.Context, timeout time.Duration) error {
 			if err != nil {
 				update = bson.M{
 					"$set": bson.M{
-						"info_fetch_error": err.Error(),
+						"info_fetch_error":     err.Error(),
+						"info_fetch_timestamp": time.Now().UTC(),
 					},
 				}
 			} else {
 				update = bson.M{
 					"$set": bson.M{
-						"info_fetch_error": "",
-						"type":             types.NewNodeTypeFromUInt64(info.Type),
+						"info_fetch_error":     "",
+						"info_fetch_timestamp": time.Now().UTC(),
+						"type":                 types.NewNodeTypeFromUInt64(info.Type),
 					},
 				}
 			}
@@ -167,7 +171,6 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 
 	for i := 0; i < len(subscriptions); i++ {
 		if !subscriptions[i].GetStatus().Equal(hubtypes.StatusActive) {
-			log.Println(subscriptions[i].GetID(), subscriptions[i].GetStatus())
 			continue
 		}
 
@@ -197,13 +200,10 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 	}
 	update := bson.M{
 		"$unset": bson.M{
-			"client_config":         1,
-			"client_start_error":    1,
-			"config_exchange_error": 1,
-			"location_fetch_error":  1,
-			"server_config":         1,
-			"session_id":            1,
-			"subscription_id":       1,
+			"client_config":   1,
+			"server_config":   1,
+			"session_id":      1,
+			"subscription_id": 1,
 		},
 	}
 
@@ -230,7 +230,6 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 	}
 
 	filter = bson.M{
-		"info_fetch_error": "",
 		"gigabyte_price": bson.M{
 			"$lt": maxGigabytePrice,
 		},
@@ -344,7 +343,6 @@ func updateSessions(ctx *context.Context) error {
 
 	for i := 0; i < len(sessions); i++ {
 		if !sessions[i].Status.Equal(hubtypes.StatusActive) {
-			log.Println(sessions[i].ID, sessions[i].Status)
 			continue
 		}
 
@@ -375,12 +373,9 @@ func updateSessions(ctx *context.Context) error {
 	}
 	update := bson.M{
 		"$unset": bson.M{
-			"client_config":         1,
-			"client_start_error":    1,
-			"config_exchange_error": 1,
-			"location_fetch_error":  1,
-			"server_config":         1,
-			"session_id":            1,
+			"client_config": 1,
+			"server_config": 1,
+			"session_id":    1,
 		},
 	}
 
@@ -407,7 +402,6 @@ func updateSessions(ctx *context.Context) error {
 	}
 
 	filter = bson.M{
-		"info_fetch_error": "",
 		"session_id": bson.M{
 			"$exists": false,
 		},
@@ -506,7 +500,6 @@ func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
 		"client_config": bson.M{
 			"$exists": false,
 		},
-		"info_fetch_error": "",
 		"server_config": bson.M{
 			"$exists": false,
 		},
@@ -626,15 +619,17 @@ func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
 			if err != nil {
 				update = bson.M{
 					"$set": bson.M{
-						"config_exchange_error": err.Error(),
+						"config_exchange_error":     err.Error(),
+						"config_exchange_timestamp": time.Now().UTC(),
 					},
 				}
 			} else {
 				update = bson.M{
 					"$set": bson.M{
-						"client_config":         clientConfig,
-						"config_exchange_error": "",
-						"server_config":         serverConfig,
+						"client_config":             clientConfig,
+						"config_exchange_error":     "",
+						"config_exchange_timestamp": time.Now().UTC(),
+						"server_config":             serverConfig,
 					},
 				}
 			}
@@ -661,8 +656,6 @@ func updateClients(ctx *context.Context) error {
 		"client_config": bson.M{
 			"$exists": true,
 		},
-		"config_exchange_error": "",
-		"info_fetch_error":      "",
 		"server_config": bson.M{
 			"$exists": true,
 		},

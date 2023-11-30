@@ -79,13 +79,15 @@ func main() {
 			if err != nil {
 				update = bson.M{
 					"$set": bson.M{
-						"location_fetch_error": err.Error(),
+						"location_fetch_error":     err.Error(),
+						"location_fetch_timestamp": time.Now().UTC(),
 					},
 				}
 			} else {
 				update = bson.M{
 					"$set": bson.M{
-						"location_fetch_error": "",
+						"location_fetch_error":     "",
+						"location_fetch_timestamp": time.Now().UTC(),
 					},
 				}
 			}
