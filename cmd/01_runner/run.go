@@ -19,7 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/go-kit/kit/transport/http/jsonrpc"
 	"github.com/hashicorp/go-uuid"
-	_ "github.com/joho/godotenv/autoload"
 	hubtypes "github.com/sentinel-official/hub/types"
 	nodetypes "github.com/sentinel-official/hub/x/node/types"
 	sessiontypes "github.com/sentinel-official/hub/x/session/types"
@@ -503,6 +502,7 @@ func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
 		"client_config": bson.M{
 			"$exists": false,
 		},
+		"info_fetch_error": "",
 		"server_config": bson.M{
 			"$exists": false,
 		},
@@ -658,6 +658,7 @@ func updateClients(ctx *context.Context) error {
 			"$exists": true,
 		},
 		"config_exchange_error": "",
+		"info_fetch_error":      "",
 		"server_config": bson.M{
 			"$exists": true,
 		},
