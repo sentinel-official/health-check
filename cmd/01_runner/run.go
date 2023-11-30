@@ -517,7 +517,9 @@ func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
 		return err
 	}
 
-	group := errgroup.Group{}
+	group := &errgroup.Group{}
+	group.SetLimit(64)
+
 	for i := 0; i < len(records); i++ {
 		var (
 			nodeAddr  = records[i].Addr
