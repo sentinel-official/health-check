@@ -657,6 +657,7 @@ func updateClients(ctx *context.Context) error {
 		"client_config": bson.M{
 			"$exists": true,
 		},
+		"config_exchange_error": "",
 		"server_config": bson.M{
 			"$exists": true,
 		},
