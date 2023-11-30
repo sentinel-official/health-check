@@ -404,6 +404,7 @@ func updateSessions(ctx *context.Context) error {
 	}
 
 	filter = bson.M{
+		"info_fetch_error": "",
 		"session_id": bson.M{
 			"$exists": false,
 		},

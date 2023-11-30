@@ -18,33 +18,6 @@ func createIndexes(ctx *context.Context) error {
 			Options: options.Index().
 				SetUnique(true),
 		},
-		{
-			Keys: bson.D{
-				bson.E{Key: "status", Value: 1},
-			},
-		},
-		{
-			Keys: bson.D{
-				bson.E{Key: "status", Value: 1},
-				bson.E{Key: "subscription_id", Value: 1},
-			},
-		},
-		{
-			Keys: bson.D{
-				bson.E{Key: "session_id", Value: 1},
-				bson.E{Key: "status", Value: 1},
-				bson.E{Key: "subscription_id", Value: 1},
-			},
-		},
-		{
-			Keys: bson.D{
-				bson.E{Key: "client_config", Value: 1},
-				bson.E{Key: "server_config", Value: 1},
-				bson.E{Key: "session_id", Value: 1},
-				bson.E{Key: "status", Value: 1},
-				bson.E{Key: "subscription_id", Value: 1},
-			},
-		},
 	}
 
 	_, err := database.RecordIndexesCreateMany(ctx, indexes)
