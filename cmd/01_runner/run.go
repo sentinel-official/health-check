@@ -636,6 +636,8 @@ func updateClients(ctx *context.Context) error {
 	}
 
 	group := &errgroup.Group{}
+	group.SetLimit(64)
+
 	for i := 0; i < len(records); i++ {
 		nodeAddr := records[i].Addr
 		group.Go(func() error {
