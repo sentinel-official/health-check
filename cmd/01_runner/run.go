@@ -210,6 +210,24 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 		return err
 	}
 
+	if len(msgs) != 0 {
+		resp, err := ctx.Tx(msgs...)
+		if err != nil {
+			return err
+		}
+
+		result, err := ctx.QueryTxWithRetry(resp.TxHash)
+		if err != nil {
+			return err
+		}
+		if result == nil {
+			return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
+		}
+		if !result.TxResult.IsOK() {
+			return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
+		}
+	}
+
 	filter = bson.M{
 		"gigabyte_price": bson.M{
 			"$lt": maxGigabytePrice,
@@ -225,6 +243,7 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 		return err
 	}
 
+	msgs = []sdk.Msg{}
 	for i := 0; i < len(records); i++ {
 		log.Println("MsgSubscribeRequest", records[i].Addr)
 		msgs = append(msgs, &nodetypes.MsgSubscribeRequest{
@@ -366,6 +385,24 @@ func updateSessions(ctx *context.Context) error {
 		return err
 	}
 
+	if len(msgs) != 0 {
+		resp, err := ctx.Tx(msgs...)
+		if err != nil {
+			return err
+		}
+
+		result, err := ctx.QueryTxWithRetry(resp.TxHash)
+		if err != nil {
+			return err
+		}
+		if result == nil {
+			return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
+		}
+		if !result.TxResult.IsOK() {
+			return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
+		}
+	}
+
 	filter = bson.M{
 		"session_id": bson.M{
 			"$exists": false,
@@ -381,6 +418,7 @@ func updateSessions(ctx *context.Context) error {
 		return err
 	}
 
+	msgs = []sdk.Msg{}
 	for i := 0; i < len(records); i++ {
 		log.Println("MsgStartRequest", records[i].SubscriptionID)
 		msgs = append(msgs, &sessiontypes.MsgStartRequest{
