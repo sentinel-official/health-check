@@ -37,7 +37,8 @@ func HandlerGetRecords(ctx *context.Context) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, types.NewResponseResult(items))
+		result := NewRecords(items)
+		c.JSON(http.StatusOK, types.NewResponseResult(result))
 	}
 }
 
@@ -63,12 +64,13 @@ func HandlerGetRecord(ctx *context.Context) gin.HandlerFunc {
 		opts := options.FindOne().
 			SetProjection(projection)
 
-		items, err := database.RecordFindOne(ctx, filter, opts)
+		item, err := database.RecordFindOne(ctx, filter, opts)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, types.NewResponseError(2, err.Error()))
 			return
 		}
 
-		c.JSON(http.StatusOK, types.NewResponseResult(items))
+		result := NewRecord(item)
+		c.JSON(http.StatusOK, types.NewResponseResult(result))
 	}
 }
