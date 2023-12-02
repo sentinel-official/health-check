@@ -21,12 +21,15 @@ func HandlerGetRecords(ctx *context.Context) gin.HandlerFunc {
 		}
 
 		projection := bson.M{
-			"_id":                   0,
-			"addr":                  1,
-			"config_exchange_error": 1,
-			"info_fetch_error":      1,
-			"location_fetch_error":  1,
-			"status":                1,
+			"_id":                       0,
+			"addr":                      1,
+			"config_exchange_error":     1,
+			"config_exchange_timestamp": 1,
+			"info_fetch_error":          1,
+			"info_fetch_timestamp":      1,
+			"location_fetch_error":      1,
+			"location_fetch_timestamp":  1,
+			"status":                    1,
 		}
 		opts := options.Find().
 			SetProjection(projection)
@@ -37,8 +40,7 @@ func HandlerGetRecords(ctx *context.Context) gin.HandlerFunc {
 			return
 		}
 
-		result := NewRecords(items)
-		c.JSON(http.StatusOK, types.NewResponseResult(result))
+		c.JSON(http.StatusOK, types.NewResponseResult(items))
 	}
 }
 
@@ -54,12 +56,15 @@ func HandlerGetRecord(ctx *context.Context) gin.HandlerFunc {
 			"addr": req.URI.Addr,
 		}
 		projection := bson.M{
-			"_id":                   0,
-			"addr":                  1,
-			"config_exchange_error": 1,
-			"info_fetch_error":      1,
-			"location_fetch_error":  1,
-			"status":                1,
+			"_id":                       0,
+			"addr":                      1,
+			"config_exchange_error":     1,
+			"config_exchange_timestamp": 1,
+			"info_fetch_error":          1,
+			"info_fetch_timestamp":      1,
+			"location_fetch_error":      1,
+			"location_fetch_timestamp":  1,
+			"status":                    1,
 		}
 		opts := options.FindOne().
 			SetProjection(projection)
@@ -70,7 +75,6 @@ func HandlerGetRecord(ctx *context.Context) gin.HandlerFunc {
 			return
 		}
 
-		result := NewRecord(item)
-		c.JSON(http.StatusOK, types.NewResponseResult(result))
+		c.JSON(http.StatusOK, types.NewResponseResult(item))
 	}
 }
