@@ -346,6 +346,7 @@ func updateSessions(ctx *context.Context) error {
 			continue
 		}
 
+		timeDiff := time.Now().Sub(sessions[i].StatusAt)
 		filter := bson.M{
 			"session_id": sessions[i].ID,
 		}
@@ -354,7 +355,7 @@ func updateSessions(ctx *context.Context) error {
 		if err != nil {
 			return err
 		}
-		if record == nil {
+		if record == nil || timeDiff > 24*time.Hour {
 			log.Println("MsgEndRequest", sessions[i].ID)
 			msgs = append(msgs, &sessiontypes.MsgEndRequest{
 				From:   bech32FromAddr,
