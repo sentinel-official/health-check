@@ -356,9 +356,7 @@ func updateSessions(ctx *context.Context) error {
 		if err != nil {
 			return err
 		}
-
-		timeDiff := time.Now().Sub(sessions[i].StatusAt)
-		if record == nil || timeDiff > 24*time.Hour {
+		if record == nil {
 			log.Println("MsgEndRequest", sessions[i].ID)
 			msgs = append(msgs, &sessiontypes.MsgEndRequest{
 				From:   bech32FromAddr,
