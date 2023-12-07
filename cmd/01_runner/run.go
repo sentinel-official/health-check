@@ -188,27 +188,11 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 				From: bech32FromAddr,
 				ID:   subscriptions[i].GetID(),
 			})
+
+			continue
 		}
 
 		ids = append(ids, subscriptions[i].GetID())
-	}
-
-	filter := bson.M{
-		"subscription_id": bson.M{
-			"$nin": ids,
-		},
-	}
-	update := bson.M{
-		"$unset": bson.M{
-			"client_config":   1,
-			"server_config":   1,
-			"session_id":      1,
-			"subscription_id": 1,
-		},
-	}
-
-	if _, err := database.RecordUpdateMany(ctx, filter, update); err != nil {
-		return err
 	}
 
 	if len(msgs) != 0 {
@@ -227,6 +211,24 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 		if !result.TxResult.IsOK() {
 			return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
 		}
+	}
+
+	filter := bson.M{
+		"subscription_id": bson.M{
+			"$nin": ids,
+		},
+	}
+	update := bson.M{
+		"$unset": bson.M{
+			"client_config":   1,
+			"server_config":   1,
+			"session_id":      1,
+			"subscription_id": 1,
+		},
+	}
+
+	if _, err := database.RecordUpdateMany(ctx, filter, update); err != nil {
+		return err
 	}
 
 	filter = bson.M{
@@ -346,7 +348,6 @@ func updateSessions(ctx *context.Context) error {
 			continue
 		}
 
-		timeDiff := time.Now().Sub(sessions[i].StatusAt)
 		filter := bson.M{
 			"session_id": sessions[i].ID,
 		}
@@ -355,6 +356,8 @@ func updateSessions(ctx *context.Context) error {
 		if err != nil {
 			return err
 		}
+
+		timeDiff := time.Now().Sub(sessions[i].StatusAt)
 		if record == nil || timeDiff > 24*time.Hour {
 			log.Println("MsgEndRequest", sessions[i].ID)
 			msgs = append(msgs, &sessiontypes.MsgEndRequest{
@@ -362,26 +365,11 @@ func updateSessions(ctx *context.Context) error {
 				ID:     sessions[i].ID,
 				Rating: 0,
 			})
+
+			continue
 		}
 
 		ids = append(ids, sessions[i].ID)
-	}
-
-	filter := bson.M{
-		"session_id": bson.M{
-			"$nin": ids,
-		},
-	}
-	update := bson.M{
-		"$unset": bson.M{
-			"client_config": 1,
-			"server_config": 1,
-			"session_id":    1,
-		},
-	}
-
-	if _, err := database.RecordUpdateMany(ctx, filter, update); err != nil {
-		return err
 	}
 
 	if len(msgs) != 0 {
@@ -400,6 +388,23 @@ func updateSessions(ctx *context.Context) error {
 		if !result.TxResult.IsOK() {
 			return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
 		}
+	}
+
+	filter := bson.M{
+		"session_id": bson.M{
+			"$nin": ids,
+		},
+	}
+	update := bson.M{
+		"$unset": bson.M{
+			"client_config": 1,
+			"server_config": 1,
+			"session_id":    1,
+		},
+	}
+
+	if _, err := database.RecordUpdateMany(ctx, filter, update); err != nil {
+		return err
 	}
 
 	filter = bson.M{
