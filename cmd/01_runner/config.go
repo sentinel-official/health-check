@@ -30,7 +30,7 @@ func AddConfigFlagsToCmd(cmd *cobra.Command) {
 	types.AddTxConfigFlagsToCmd(cmd)
 
 	cmd.Flags().Int64("max_gigabyte_price", 25_000_000, "Max gigabyte price in udvpn denomination")
-	cmd.Flags().Duration("request_timeout", 15*time.Second, "HTTP request timeout")
+	cmd.Flags().Duration("request_timeout", 5*time.Second, "HTTP request timeout")
 	cmd.Flags().String("payment_denom", "udvpn", "Payment denomination")
 }
 
