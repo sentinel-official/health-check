@@ -501,12 +501,6 @@ func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
 	}
 
 	filter := bson.M{
-		"client_config": bson.M{
-			"$exists": false,
-		},
-		"server_config": bson.M{
-			"$exists": false,
-		},
 		"session_id": bson.M{
 			"$exists": true,
 		},
@@ -526,10 +520,12 @@ func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
 
 	for i := 0; i < len(records); i++ {
 		var (
-			nodeAddr  = records[i].Addr
-			nodeType  = records[i].Type
-			remoteURL = records[i].RemoteURL
-			sessionID = records[i].SessionID
+			clientConfig = records[i].ClientConfig
+			nodeAddr     = records[i].Addr
+			nodeType     = records[i].Type
+			remoteURL    = records[i].RemoteURL
+			serverConfig = records[i].ServerConfig
+			sessionID    = records[i].SessionID
 		)
 
 		group.Go(func() error {
@@ -575,11 +571,6 @@ func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
 					return nil, nil, err
 				}
 
-				urlPath, err := url.JoinPath(remoteURL, fmt.Sprintf("/accounts/%s/sessions/%d", fromAddr, sessionID))
-				if err != nil {
-					return nil, nil, err
-				}
-
 				client := &http.Client{
 					Transport: &http.Transport{
 						TLSClientConfig: &tls.Config{
@@ -587,6 +578,25 @@ func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
 						},
 					},
 					Timeout: timeout,
+				}
+
+				urlPath, err := url.JoinPath(remoteURL, fmt.Sprintf("/accounts/%s/sessions/1", fromAddr))
+				if err != nil {
+					return nil, nil, err
+				}
+
+				_, err = client.Post(urlPath, jsonrpc.ContentType, bytes.NewBuffer(req))
+				if err != nil {
+					return nil, nil, err
+				}
+
+				if len(clientConfig) != 0 && len(serverConfig) != 0 {
+					return clientConfig, serverConfig, nil
+				}
+
+				urlPath, err = url.JoinPath(remoteURL, fmt.Sprintf("/accounts/%s/sessions/%d", fromAddr, sessionID))
+				if err != nil {
+					return nil, nil, err
 				}
 
 				resp, err := client.Post(urlPath, jsonrpc.ContentType, bytes.NewBuffer(req))
@@ -627,6 +637,10 @@ func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
 					"$set": bson.M{
 						"config_exchange_error":     err.Error(),
 						"config_exchange_timestamp": time.Now().UTC(),
+					},
+					"$unset": bson.M{
+						"client_config": 1,
+						"server_config": 1,
 					},
 				}
 			} else {
