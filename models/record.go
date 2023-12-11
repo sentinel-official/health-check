@@ -19,6 +19,9 @@ type Record struct {
 	LocationFetchError      string          `json:"location_fetch_error,omitempty" bson:"location_fetch_error,omitempty"`
 	LocationFetchTimestamp  time.Time       `json:"location_fetch_timestamp,omitempty" bson:"location_fetch_timestamp,omitempty"`
 	RemoteURL               string          `json:"remote_url,omitempty" bson:"remote_url,omitempty"`
+	Score                   float64         `json:"score,omitempty" bson:"score,omitempty"`
+	ScoreFetchError         string          `json:"score_fetch_error,omitempty" bson:"score_fetch_error,omitempty"`
+	ScoreFetchTimestamp     time.Time       `json:"score_fetch_timestamp,omitempty" bson:"score_fetch_timestamp,omitempty"`
 	ServerConfig            []byte          `json:"server_config,omitempty" bson:"server_config,omitempty"`
 	SessionID               uint64          `json:"session_id,omitempty" bson:"session_id,omitempty"`
 	Status                  hubtypes.Status `json:"status,omitempty" bson:"status,omitempty"`

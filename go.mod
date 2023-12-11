@@ -3,6 +3,7 @@ module github.com/sentinel-official/health-check
 go 1.21
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.26.0
 	github.com/cosmos/cosmos-sdk v0.45.16
 	github.com/gin-contrib/cors v1.5.0
 	github.com/gin-gonic/gin v1.9.1

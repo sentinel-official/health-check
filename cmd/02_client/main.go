@@ -11,6 +11,7 @@ import (
 	"github.com/sentinel-official/health-check/context"
 	"github.com/sentinel-official/health-check/database"
 	"github.com/sentinel-official/health-check/libs/geoip"
+	"github.com/sentinel-official/health-check/libs/ipintel"
 	"github.com/sentinel-official/health-check/types"
 	"github.com/sentinel-official/health-check/utils"
 )
@@ -72,7 +73,7 @@ func main() {
 			}
 			update := bson.M{}
 
-			_, err = geoip.Location(transport)
+			location, err := geoip.Location(transport)
 			if err != nil {
 				update = bson.M{
 					"$set": bson.M{
@@ -85,6 +86,32 @@ func main() {
 					"$set": bson.M{
 						"location_fetch_error":     "",
 						"location_fetch_timestamp": time.Now().UTC(),
+					},
+				}
+			}
+
+			if _, err := database.RecordFindOneAndUpdate(ctx, filter, update); err != nil {
+				return err
+			}
+
+			if location == nil {
+				return nil
+			}
+
+			score, err := ipintel.Score(transport, location.IP)
+			if err != nil {
+				update = bson.M{
+					"$set": bson.M{
+						"score_fetch_error":     err.Error(),
+						"score_fetch_timestamp": time.Now().UTC(),
+					},
+				}
+			} else {
+				update = bson.M{
+					"$set": bson.M{
+						"score":                 score,
+						"score_fetch_error":     "",
+						"score_fetch_timestamp": time.Now().UTC(),
 					},
 				}
 			}
