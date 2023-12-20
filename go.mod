@@ -16,7 +16,7 @@ require (
 	github.com/tendermint/tendermint v0.34.27
 	go.mongodb.org/mongo-driver v1.13.0
 	golang.org/x/crypto v0.17.0
-	golang.org/x/net v0.16.0
+	golang.org/x/net v0.17.0
 	golang.org/x/sync v0.2.0
 )
 
