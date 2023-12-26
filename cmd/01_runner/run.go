@@ -146,7 +146,7 @@ func updateNodeInfos(ctx *context.Context, timeout time.Duration) error {
 	return nil
 }
 
-func cancelSubscriptions(ctx *context.Context) error {
+func cancelSubscriptions(ctx *context.Context, maxMsgs int) error {
 	log.Println("cancelSubscriptions")
 
 	fromAddr, err := ctx.FromAddr()
@@ -224,8 +224,8 @@ func cancelSubscriptions(ctx *context.Context) error {
 	if len(msgs) == 0 {
 		return nil
 	}
-	if len(msgs) > 1000 {
-		msgs = msgs[0:1000]
+	if len(msgs) > maxMsgs {
+		msgs = msgs[0:maxMsgs]
 	}
 
 	resp, err := ctx.Tx(msgs...)
@@ -247,7 +247,7 @@ func cancelSubscriptions(ctx *context.Context) error {
 	return nil
 }
 
-func startSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDenom string) error {
+func startSubscriptions(ctx *context.Context, maxMsgs int, maxGigabytePrice int64, paymentDenom string) error {
 	log.Println("startSubscriptions")
 
 	filter := bson.M{
@@ -293,8 +293,8 @@ func startSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDen
 	if len(msgs) == 0 {
 		return nil
 	}
-	if len(msgs) > 1000 {
-		msgs = msgs[0:1000]
+	if len(msgs) > maxMsgs {
+		msgs = msgs[0:maxMsgs]
 	}
 
 	resp, err := ctx.Tx(msgs...)
@@ -355,7 +355,7 @@ func startSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDen
 	return nil
 }
 
-func endSessions(ctx *context.Context) error {
+func endSessions(ctx *context.Context, maxMsgs int) error {
 	log.Println("endSessions")
 
 	fromAddr, err := ctx.FromAddr()
@@ -433,8 +433,8 @@ func endSessions(ctx *context.Context) error {
 	if len(msgs) == 0 {
 		return nil
 	}
-	if len(msgs) > 1000 {
-		msgs = msgs[0:1000]
+	if len(msgs) > maxMsgs {
+		msgs = msgs[0:maxMsgs]
 	}
 
 	resp, err := ctx.Tx(msgs...)
@@ -456,7 +456,7 @@ func endSessions(ctx *context.Context) error {
 	return nil
 }
 
-func startSessions(ctx *context.Context) error {
+func startSessions(ctx *context.Context, maxMsgs int) error {
 	log.Println("startSessions")
 
 	filter := bson.M{
@@ -500,8 +500,8 @@ func startSessions(ctx *context.Context) error {
 	if len(msgs) == 0 {
 		return nil
 	}
-	if len(msgs) > 1000 {
-		msgs = msgs[0:1000]
+	if len(msgs) > maxMsgs {
+		msgs = msgs[0:maxMsgs]
 	}
 
 	resp, err := ctx.Tx(msgs...)

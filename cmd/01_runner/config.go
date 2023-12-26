@@ -17,6 +17,7 @@ type Config struct {
 	Query            *types.QueryConfig
 	Tx               *types.TxConfig
 	MaxGigabytePrice int64         `json:"max_gigabyte_price,omitempty"`
+	MaxMsgs          int           `json:"max_msgs,omitempty"`
 	PaymentDenom     string        `json:"payment_denom,omitempty"`
 	RequestTimeout   time.Duration `json:"request_timeout,omitempty"`
 }
@@ -29,7 +30,8 @@ func AddConfigFlagsToCmd(cmd *cobra.Command) {
 	types.AddQueryConfigFlagsToCmd(cmd)
 	types.AddTxConfigFlagsToCmd(cmd)
 
-	cmd.Flags().Int64("max_gigabyte_price", 25_000_000, "Max gigabyte price in udvpn denomination")
+	cmd.Flags().Int64("max_gigabyte_price", 20_000_000, "Max gigabyte price in udvpn denomination")
+	cmd.Flags().Int("max_msgs", 1_000, "Max number of messages in a transaction")
 	cmd.Flags().Duration("request_timeout", 5*time.Second, "HTTP request timeout")
 	cmd.Flags().String("payment_denom", "udvpn", "Payment denomination")
 }
@@ -70,6 +72,11 @@ func NewConfigFromFlags(flags *pflag.FlagSet) (*Config, error) {
 		return nil, err
 	}
 
+	maxMsgs, err := flags.GetInt("max_msgs")
+	if err != nil {
+		return nil, err
+	}
+
 	paymentDenom, err := flags.GetString("payment_denom")
 	if err != nil {
 		return nil, err
@@ -88,6 +95,7 @@ func NewConfigFromFlags(flags *pflag.FlagSet) (*Config, error) {
 		Query:            queryConfig,
 		Tx:               txConfig,
 		MaxGigabytePrice: maxGigabytePrice,
+		MaxMsgs:          maxMsgs,
 		PaymentDenom:     paymentDenom,
 		RequestTimeout:   requestTimeout,
 	}, nil
