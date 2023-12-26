@@ -15,7 +15,7 @@ type Record struct {
 	ConfigExchangeError     string          `json:"config_exchange_error,omitempty" bson:"config_exchange_error,omitempty"`
 	ConfigExchangeTimestamp time.Time       `json:"config_exchange_timestamp,omitempty" bson:"config_exchange_timestamp,omitempty"`
 	Country                 string          `json:"country,omitempty" bson:"country,omitempty"`
-	DuplicateIPAddr         string          `json:"duplicate_ip_addr,omitempty" bson:"duplicate_ip_addr,omitempty"`
+	DuplicateIPAddr         bool            `json:"duplicate_ip_addr,omitempty" bson:"duplicate_ip_addr,omitempty"`
 	GigabytePrice           int64           `json:"gigabyte_price,omitempty" bson:"gigabyte_price,omitempty"`
 	InfoFetchError          string          `json:"info_fetch_error,omitempty" bson:"info_fetch_error,omitempty"`
 	InfoFetchTimestamp      time.Time       `json:"info_fetch_timestamp,omitempty" bson:"info_fetch_timestamp,omitempty"`
