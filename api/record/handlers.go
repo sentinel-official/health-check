@@ -30,6 +30,7 @@ func HandlerGetRecords(ctx *context.Context) gin.HandlerFunc {
 			"info_fetch_timestamp":      1,
 			"location_fetch_error":      1,
 			"location_fetch_timestamp":  1,
+			"ok":                        1,
 			"status":                    1,
 		}
 		opts := options.Find().
@@ -66,6 +67,7 @@ func HandlerGetRecord(ctx *context.Context) gin.HandlerFunc {
 			"info_fetch_timestamp":      1,
 			"location_fetch_error":      1,
 			"location_fetch_timestamp":  1,
+			"ok":                        1,
 			"status":                    1,
 		}
 		opts := options.FindOne().
