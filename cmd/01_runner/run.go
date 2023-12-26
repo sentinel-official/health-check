@@ -220,6 +220,7 @@ func cancelSubscriptions(ctx *context.Context) error {
 		return err
 	}
 
+	log.Println("msgsLen", len(msgs))
 	if len(msgs) == 0 {
 		return nil
 	}
@@ -288,6 +289,7 @@ func startSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDen
 		)
 	}
 
+	log.Println("msgsLen", len(msgs))
 	if len(msgs) == 0 {
 		return nil
 	}
@@ -427,6 +429,7 @@ func endSessions(ctx *context.Context) error {
 		return err
 	}
 
+	log.Println("msgsLen", len(msgs))
 	if len(msgs) == 0 {
 		return nil
 	}
@@ -493,6 +496,7 @@ func startSessions(ctx *context.Context) error {
 		)
 	}
 
+	log.Println("msgsLen", len(msgs))
 	if len(msgs) == 0 {
 		return nil
 	}
