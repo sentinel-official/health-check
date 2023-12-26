@@ -27,7 +27,7 @@ func connect(ctx *context.Context, addr string) (*models.Record, error) {
 		},
 	}
 
-	record, err := database.RecordFindOne(ctx, filter)
+	record, err := database.TempRecordFindOne(ctx, filter)
 	if err != nil {
 		return nil, err
 	}

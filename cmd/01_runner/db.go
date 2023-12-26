@@ -29,6 +29,10 @@ func createIndexes(ctx *context.Context) error {
 	if err != nil {
 		return err
 	}
+	_, err = database.TempRecordIndexesCreateMany(ctx, indexes)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

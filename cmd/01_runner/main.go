@@ -71,6 +71,9 @@ func main() {
 				return err
 			}
 
+			if err := startTransaction(ctx); err != nil {
+				return err
+			}
 			if err := queryNodes(ctx, cfg.PaymentDenom); err != nil {
 				return err
 			}
@@ -99,6 +102,9 @@ func main() {
 				return err
 			}
 			if err := updateOKs(ctx); err != nil {
+				return err
+			}
+			if err := commitTransaction(ctx); err != nil {
 				return err
 			}
 

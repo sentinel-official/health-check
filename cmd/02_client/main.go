@@ -94,7 +94,7 @@ func main() {
 				}
 			}
 
-			if _, err := database.RecordFindOneAndUpdate(ctx, filter, update); err != nil {
+			if _, err := database.TempRecordFindOneAndUpdate(ctx, filter, update); err != nil {
 				return err
 			}
 

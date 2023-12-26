@@ -34,6 +34,34 @@ import (
 	wireguardtypes "github.com/sentinel-official/health-check/types/wireguard"
 )
 
+func startTransaction(ctx *context.Context) error {
+	filter := bson.M{}
+	if _, err := database.TempRecordDeleteMany(ctx, filter); err != nil {
+		return err
+	}
+
+	projection := bson.M{
+		"addr":            1,
+		"client_config":   1,
+		"server_config":   1,
+		"session_id":      1,
+		"subscription_id": 1,
+	}
+	opts := options.Find().
+		SetProjection(projection)
+
+	items, err := database.RecordFindAll(ctx, filter, opts)
+	if err != nil {
+		return err
+	}
+
+	if _, err := database.TempRecordInsertMany(ctx, items); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func queryNodes(ctx *context.Context, paymentDenom string) error {
 	pagination := &query.PageRequest{
 		Limit: 1e9,
@@ -65,7 +93,7 @@ func queryNodes(ctx *context.Context, paymentDenom string) error {
 			SetUpsert(true)
 
 		addrs = append(addrs, nodes[i].Address)
-		if _, err := database.RecordFindOneAndUpdate(ctx, filter, update, opts); err != nil {
+		if _, err := database.TempRecordFindOneAndUpdate(ctx, filter, update, opts); err != nil {
 			return err
 		}
 	}
@@ -81,7 +109,7 @@ func queryNodes(ctx *context.Context, paymentDenom string) error {
 		},
 	}
 
-	if _, err := database.RecordUpdateMany(ctx, filter, update); err != nil {
+	if _, err := database.TempRecordUpdateMany(ctx, filter, update); err != nil {
 		return err
 	}
 
@@ -93,7 +121,7 @@ func updateNodeInfos(ctx *context.Context, timeout time.Duration) error {
 		"status": hubtypes.StatusActive,
 	}
 
-	nodes, err := database.RecordFindAll(ctx, filter)
+	nodes, err := database.TempRecordFindAll(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -131,7 +159,7 @@ func updateNodeInfos(ctx *context.Context, timeout time.Duration) error {
 				}
 			}
 
-			if _, err := database.RecordFindOneAndUpdate(ctx, filter, update); err != nil {
+			if _, err := database.TempRecordFindOneAndUpdate(ctx, filter, update); err != nil {
 				return err
 			}
 
@@ -178,7 +206,7 @@ func cancelSubscriptions(ctx *context.Context, maxMsgs int) error {
 			"subscription_id": subscriptions[i].GetID(),
 		}
 
-		record, err := database.RecordFindOne(ctx, filter)
+		record, err := database.TempRecordFindOne(ctx, filter)
 		if err != nil {
 			return err
 		}
@@ -216,7 +244,7 @@ func cancelSubscriptions(ctx *context.Context, maxMsgs int) error {
 		},
 	}
 
-	if _, err := database.RecordUpdateMany(ctx, filter, update); err != nil {
+	if _, err := database.TempRecordUpdateMany(ctx, filter, update); err != nil {
 		return err
 	}
 
@@ -260,7 +288,7 @@ func startSubscriptions(ctx *context.Context, maxMsgs int, maxGigabytePrice int6
 		},
 	}
 
-	records, err := database.RecordFindAll(ctx, filter)
+	records, err := database.TempRecordFindAll(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -346,7 +374,7 @@ func startSubscriptions(ctx *context.Context, maxMsgs int, maxGigabytePrice int6
 				},
 			}
 
-			if _, err := database.RecordFindOneAndUpdate(ctx, filter, update); err != nil {
+			if _, err := database.TempRecordFindOneAndUpdate(ctx, filter, update); err != nil {
 				return err
 			}
 		}
@@ -387,7 +415,7 @@ func endSessions(ctx *context.Context, maxMsgs int) error {
 			"session_id": sessions[i].ID,
 		}
 
-		record, err := database.RecordFindOne(ctx, filter)
+		record, err := database.TempRecordFindOne(ctx, filter)
 		if err != nil {
 			return err
 		}
@@ -425,7 +453,7 @@ func endSessions(ctx *context.Context, maxMsgs int) error {
 		},
 	}
 
-	if _, err := database.RecordUpdateMany(ctx, filter, update); err != nil {
+	if _, err := database.TempRecordUpdateMany(ctx, filter, update); err != nil {
 		return err
 	}
 
@@ -469,7 +497,7 @@ func startSessions(ctx *context.Context, maxMsgs int) error {
 		},
 	}
 
-	records, err := database.RecordFindAll(ctx, filter)
+	records, err := database.TempRecordFindAll(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -553,7 +581,7 @@ func startSessions(ctx *context.Context, maxMsgs int) error {
 				},
 			}
 
-			if _, err := database.RecordFindOneAndUpdate(ctx, filter, update); err != nil {
+			if _, err := database.TempRecordFindOneAndUpdate(ctx, filter, update); err != nil {
 				return err
 			}
 		}
@@ -580,7 +608,7 @@ func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
 		},
 	}
 
-	records, err := database.RecordFindAll(ctx, filter)
+	records, err := database.TempRecordFindAll(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -724,7 +752,7 @@ func updateClientConfigs(ctx *context.Context, timeout time.Duration) error {
 				}
 			}
 
-			if _, err := database.RecordFindOneAndUpdate(ctx, filter, update); err != nil {
+			if _, err := database.TempRecordFindOneAndUpdate(ctx, filter, update); err != nil {
 				return err
 			}
 
@@ -758,7 +786,7 @@ func updateClients(ctx *context.Context) error {
 		},
 	}
 
-	records, err := database.RecordFindAll(ctx, filter)
+	records, err := database.TempRecordFindAll(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -815,7 +843,7 @@ func updateDuplicateIPAddrs(ctx *context.Context) error {
 		"location_fetch_error": "",
 	}
 
-	records, err := database.RecordFindAll(ctx, filter)
+	records, err := database.TempRecordFindAll(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -849,7 +877,7 @@ func updateDuplicateIPAddrs(ctx *context.Context) error {
 			}
 		}
 
-		if _, err := database.RecordUpdateMany(ctx, filter, update); err != nil {
+		if _, err := database.TempRecordUpdateMany(ctx, filter, update); err != nil {
 			return err
 		}
 	}
@@ -867,7 +895,7 @@ func updateOKs(ctx *context.Context) error {
 		},
 	}
 
-	if _, err := database.RecordUpdateMany(ctx, filter, update); err != nil {
+	if _, err := database.TempRecordUpdateMany(ctx, filter, update); err != nil {
 		return err
 	}
 
@@ -896,7 +924,25 @@ func updateOKs(ctx *context.Context) error {
 		},
 	}
 
-	if _, err := database.RecordUpdateMany(ctx, filter, update); err != nil {
+	if _, err := database.TempRecordUpdateMany(ctx, filter, update); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func commitTransaction(ctx *context.Context) error {
+	filter := bson.M{}
+	if _, err := database.RecordDeleteMany(ctx, filter); err != nil {
+		return err
+	}
+
+	items, err := database.TempRecordFindAll(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	if _, err := database.RecordInsertMany(ctx, items); err != nil {
 		return err
 	}
 

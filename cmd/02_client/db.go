@@ -20,7 +20,7 @@ func createIndexes(ctx *context.Context) error {
 		},
 	}
 
-	_, err := database.RecordIndexesCreateMany(ctx, indexes)
+	_, err := database.TempRecordIndexesCreateMany(ctx, indexes)
 	if err != nil {
 		return err
 	}

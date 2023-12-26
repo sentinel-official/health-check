@@ -51,3 +51,16 @@ func RecordInsertOne(ctx *context.Context, v *models.Record, opts ...*options.In
 func RecordUpdateMany(ctx *context.Context, filter, update bson.M, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return UpdateMany(ctx, ctx.Database().Collection(RecordCollectionName), filter, update, opts...)
 }
+
+func RecordDeleteMany(ctx *context.Context, filter bson.M, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
+	return DeleteMany(ctx, ctx.Database().Collection(RecordCollectionName), filter, opts...)
+}
+
+func RecordInsertMany(ctx *context.Context, v []*models.Record, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error) {
+	var items []interface{}
+	for i := 0; i < len(v); i++ {
+		items = append(items, v[i])
+	}
+
+	return InsertMany(ctx, ctx.Database().Collection(RecordCollectionName), items, opts...)
+}
