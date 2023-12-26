@@ -722,3 +722,64 @@ func updateClients(ctx *context.Context) error {
 
 	return nil
 }
+
+func updateDuplicateIPAddrs(ctx *context.Context) error {
+	log.Println("updateDuplicateIPAddrs")
+
+	filter := bson.M{
+		"status": hubtypes.StatusActive,
+		"info_fetch_timestamp": bson.M{
+			"$gt": time.Time{},
+		},
+		"info_fetch_error": "",
+		"config_exchange_timestamp": bson.M{
+			"$gt": time.Time{},
+		},
+		"config_exchange_error": "",
+		"location_fetch_timestamp": bson.M{
+			"$gt": time.Time{},
+		},
+		"location_fetch_error": "",
+	}
+
+	records, err := database.RecordFindAll(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	ipAddrs := make(map[string]int)
+	for i := 0; i < len(records); i++ {
+		if _, ok := ipAddrs[records[i].IPAddr]; !ok {
+			ipAddrs[records[i].IPAddr] = 0
+		}
+
+		ipAddrs[records[i].IPAddr] += 1
+	}
+
+	for s, i := range ipAddrs {
+		filter := bson.M{
+			"ip_addr": s,
+		}
+		update := bson.M{}
+
+		if i > 1 {
+			update = bson.M{
+				"$set": bson.M{
+					"duplicate_ip_addr": true,
+				},
+			}
+		} else {
+			update = bson.M{
+				"$set": bson.M{
+					"duplicate_ip_addr": false,
+				},
+			}
+		}
+
+		if _, err := database.RecordFindOneAndUpdate(ctx, filter, update); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

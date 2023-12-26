@@ -72,7 +72,7 @@ func main() {
 			}
 			update := bson.M{}
 
-			_, err = geoip.Location(transport)
+			location, err := geoip.Location(transport)
 			if err != nil {
 				update = bson.M{
 					"$set": bson.M{
@@ -83,8 +83,13 @@ func main() {
 			} else {
 				update = bson.M{
 					"$set": bson.M{
+						"city":                     location.City,
+						"country":                  location.Country,
+						"ip_addr":                  location.IP,
+						"latitude":                 location.Latitude,
 						"location_fetch_error":     "",
 						"location_fetch_timestamp": time.Now().UTC(),
+						"longitude":                location.Longitude,
 					},
 				}
 			}
