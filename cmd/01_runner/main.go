@@ -77,10 +77,16 @@ func main() {
 			if err := updateNodeInfos(ctx, cfg.RequestTimeout); err != nil {
 				return err
 			}
-			if err := updateSubscriptions(ctx, cfg.MaxGigabytePrice, cfg.PaymentDenom); err != nil {
+			if err := cancelSubscriptions(ctx); err != nil {
 				return err
 			}
-			if err := updateSessions(ctx); err != nil {
+			if err := startSubscriptions(ctx, cfg.MaxGigabytePrice, cfg.PaymentDenom); err != nil {
+				return err
+			}
+			if err := endSessions(ctx); err != nil {
+				return err
+			}
+			if err := startSessions(ctx); err != nil {
 				return err
 			}
 			if err := updateClientConfigs(ctx, cfg.RequestTimeout); err != nil {

@@ -146,8 +146,8 @@ func updateNodeInfos(ctx *context.Context, timeout time.Duration) error {
 	return nil
 }
 
-func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDenom string) error {
-	log.Println("updateSubscriptions")
+func cancelSubscriptions(ctx *context.Context) error {
+	log.Println("cancelSubscriptions")
 
 	fromAddr, err := ctx.FromAddr()
 	if err != nil {
@@ -164,9 +164,9 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 	}
 
 	var (
+		activeIDs      []uint64
 		msgs           []sdk.Msg
 		bech32FromAddr = fromAddr.String()
-		ids            = []uint64{0}
 	)
 
 	for i := 0; i < len(subscriptions); i++ {
@@ -184,40 +184,29 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 		}
 		if record == nil {
 			log.Println("MsgCancelRequest", subscriptions[i].GetID())
-			msgs = append(msgs, &subscriptiontypes.MsgCancelRequest{
-				From: bech32FromAddr,
-				ID:   subscriptions[i].GetID(),
-			})
+			msgs = append(
+				msgs,
+				&subscriptiontypes.MsgCancelRequest{
+					From: bech32FromAddr,
+					ID:   subscriptions[i].GetID(),
+				},
+			)
 
 			continue
 		}
 
-		ids = append(ids, subscriptions[i].GetID())
+		activeIDs = append(activeIDs, subscriptions[i].GetID())
 	}
 
-	if len(msgs) != 0 {
-		resp, err := ctx.Tx(msgs...)
-		if err != nil {
-			return err
-		}
-
-		result, err := ctx.QueryTxWithRetry(resp.TxHash)
-		if err != nil {
-			return err
-		}
-		if result == nil {
-			return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
-		}
-		if !result.TxResult.IsOK() {
-			return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
+	filter := bson.M{}
+	if len(activeIDs) > 0 {
+		filter = bson.M{
+			"subscription_id": bson.M{
+				"$nin": activeIDs,
+			},
 		}
 	}
 
-	filter := bson.M{
-		"subscription_id": bson.M{
-			"$nin": ids,
-		},
-	}
 	update := bson.M{
 		"$unset": bson.M{
 			"client_config":   1,
@@ -231,7 +220,36 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 		return err
 	}
 
-	filter = bson.M{
+	if len(msgs) == 0 {
+		return nil
+	}
+	if len(msgs) > 1000 {
+		msgs = msgs[0:1000]
+	}
+
+	resp, err := ctx.Tx(msgs...)
+	if err != nil {
+		return err
+	}
+
+	result, err := ctx.QueryTxWithRetry(resp.TxHash)
+	if err != nil {
+		return err
+	}
+	if result == nil {
+		return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
+	}
+	if !result.TxResult.IsOK() {
+		return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
+	}
+
+	return nil
+}
+
+func startSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDenom string) error {
+	log.Println("startSubscriptions")
+
+	filter := bson.M{
 		"gigabyte_price": bson.M{
 			"$lt": maxGigabytePrice,
 		},
@@ -246,20 +264,35 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 		return err
 	}
 
-	msgs = []sdk.Msg{}
+	fromAddr, err := ctx.FromAddr()
+	if err != nil {
+		return err
+	}
+
+	var (
+		msgs           []sdk.Msg
+		bech32FromAddr = fromAddr.String()
+	)
+
 	for i := 0; i < len(records); i++ {
 		log.Println("MsgSubscribeRequest", records[i].Addr)
-		msgs = append(msgs, &nodetypes.MsgSubscribeRequest{
-			From:        bech32FromAddr,
-			NodeAddress: records[i].Addr,
-			Gigabytes:   1,
-			Hours:       0,
-			Denom:       paymentDenom,
-		})
+		msgs = append(
+			msgs,
+			&nodetypes.MsgSubscribeRequest{
+				From:        bech32FromAddr,
+				NodeAddress: records[i].Addr,
+				Gigabytes:   1,
+				Hours:       0,
+				Denom:       paymentDenom,
+			},
+		)
 	}
 
 	if len(msgs) == 0 {
 		return nil
+	}
+	if len(msgs) > 1000 {
+		msgs = msgs[0:1000]
 	}
 
 	resp, err := ctx.Tx(msgs...)
@@ -320,8 +353,8 @@ func updateSubscriptions(ctx *context.Context, maxGigabytePrice int64, paymentDe
 	return nil
 }
 
-func updateSessions(ctx *context.Context) error {
-	log.Println("updateSessions")
+func endSessions(ctx *context.Context) error {
+	log.Println("endSessions")
 
 	fromAddr, err := ctx.FromAddr()
 	if err != nil {
@@ -338,9 +371,9 @@ func updateSessions(ctx *context.Context) error {
 	}
 
 	var (
+		activeIDs      []uint64
 		msgs           []sdk.Msg
 		bech32FromAddr = fromAddr.String()
-		ids            = []uint64{0}
 	)
 
 	for i := 0; i < len(sessions); i++ {
@@ -358,41 +391,30 @@ func updateSessions(ctx *context.Context) error {
 		}
 		if record == nil {
 			log.Println("MsgEndRequest", sessions[i].ID)
-			msgs = append(msgs, &sessiontypes.MsgEndRequest{
-				From:   bech32FromAddr,
-				ID:     sessions[i].ID,
-				Rating: 0,
-			})
+			msgs = append(
+				msgs,
+				&sessiontypes.MsgEndRequest{
+					From:   bech32FromAddr,
+					ID:     sessions[i].ID,
+					Rating: 0,
+				},
+			)
 
 			continue
 		}
 
-		ids = append(ids, sessions[i].ID)
+		activeIDs = append(activeIDs, sessions[i].ID)
 	}
 
-	if len(msgs) != 0 {
-		resp, err := ctx.Tx(msgs...)
-		if err != nil {
-			return err
-		}
-
-		result, err := ctx.QueryTxWithRetry(resp.TxHash)
-		if err != nil {
-			return err
-		}
-		if result == nil {
-			return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
-		}
-		if !result.TxResult.IsOK() {
-			return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
+	filter := bson.M{}
+	if len(activeIDs) > 0 {
+		filter = bson.M{
+			"session_id": bson.M{
+				"$nin": activeIDs,
+			},
 		}
 	}
 
-	filter := bson.M{
-		"session_id": bson.M{
-			"$nin": ids,
-		},
-	}
 	update := bson.M{
 		"$unset": bson.M{
 			"client_config": 1,
@@ -405,7 +427,36 @@ func updateSessions(ctx *context.Context) error {
 		return err
 	}
 
-	filter = bson.M{
+	if len(msgs) == 0 {
+		return nil
+	}
+	if len(msgs) > 1000 {
+		msgs = msgs[0:1000]
+	}
+
+	resp, err := ctx.Tx(msgs...)
+	if err != nil {
+		return err
+	}
+
+	result, err := ctx.QueryTxWithRetry(resp.TxHash)
+	if err != nil {
+		return err
+	}
+	if result == nil {
+		return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
+	}
+	if !result.TxResult.IsOK() {
+		return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
+	}
+
+	return nil
+}
+
+func startSessions(ctx *context.Context) error {
+	log.Println("startSessions")
+
+	filter := bson.M{
 		"session_id": bson.M{
 			"$exists": false,
 		},
@@ -420,18 +471,33 @@ func updateSessions(ctx *context.Context) error {
 		return err
 	}
 
-	msgs = []sdk.Msg{}
+	fromAddr, err := ctx.FromAddr()
+	if err != nil {
+		return err
+	}
+
+	var (
+		msgs           []sdk.Msg
+		bech32FromAddr = fromAddr.String()
+	)
+
 	for i := 0; i < len(records); i++ {
 		log.Println("MsgStartRequest", records[i].SubscriptionID)
-		msgs = append(msgs, &sessiontypes.MsgStartRequest{
-			From:    bech32FromAddr,
-			ID:      records[i].SubscriptionID,
-			Address: records[i].Addr,
-		})
+		msgs = append(
+			msgs,
+			&sessiontypes.MsgStartRequest{
+				From:    bech32FromAddr,
+				ID:      records[i].SubscriptionID,
+				Address: records[i].Addr,
+			},
+		)
 	}
 
 	if len(msgs) == 0 {
 		return nil
+	}
+	if len(msgs) > 1000 {
+		msgs = msgs[0:1000]
 	}
 
 	resp, err := ctx.Tx(msgs...)
