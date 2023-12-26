@@ -92,6 +92,9 @@ func main() {
 			if err := updateDuplicateIPAddrs(ctx); err != nil {
 				return err
 			}
+			if err := updateOKs(ctx); err != nil {
+				return err
+			}
 
 			return nil
 		},

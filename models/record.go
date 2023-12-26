@@ -24,6 +24,7 @@ type Record struct {
 	LocationFetchError      string          `json:"location_fetch_error,omitempty" bson:"location_fetch_error,omitempty"`
 	LocationFetchTimestamp  time.Time       `json:"location_fetch_timestamp,omitempty" bson:"location_fetch_timestamp,omitempty"`
 	Longitude               float64         `json:"longitude,omitempty" bson:"longitude,omitempty"`
+	OK                      bool            `json:"ok,omitempty" bson:"ok,omitempty"`
 	RemoteURL               string          `json:"remote_url,omitempty" bson:"remote_url,omitempty"`
 	ServerConfig            []byte          `json:"server_config,omitempty" bson:"server_config,omitempty"`
 	SessionID               uint64          `json:"session_id,omitempty" bson:"session_id,omitempty"`

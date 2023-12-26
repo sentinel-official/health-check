@@ -783,3 +783,46 @@ func updateDuplicateIPAddrs(ctx *context.Context) error {
 
 	return nil
 }
+
+func updateOKs(ctx *context.Context) error {
+	log.Println("updateOKs")
+
+	filter := bson.M{}
+	update := bson.M{
+		"$set": bson.M{
+			"ok": false,
+		},
+	}
+
+	if _, err := database.RecordUpdateMany(ctx, filter, update); err != nil {
+		return err
+	}
+
+	filter = bson.M{
+		"status": hubtypes.StatusActive,
+		"info_fetch_timestamp": bson.M{
+			"$gt": time.Time{},
+		},
+		"info_fetch_error": "",
+		"config_exchange_timestamp": bson.M{
+			"$gt": time.Time{},
+		},
+		"config_exchange_error": "",
+		"duplicate_ip_addr":     false,
+		"location_fetch_timestamp": bson.M{
+			"$gt": time.Time{},
+		},
+		"location_fetch_error": "",
+	}
+	update = bson.M{
+		"$set": bson.M{
+			"ok": true,
+		},
+	}
+
+	if _, err := database.RecordUpdateMany(ctx, filter, update); err != nil {
+		return err
+	}
+
+	return nil
+}
