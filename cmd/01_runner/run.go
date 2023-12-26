@@ -857,9 +857,22 @@ func updateDuplicateIPAddrs(ctx *context.Context) error {
 		ipAddrs[records[i].IPAddr] += 1
 	}
 
-	for s, i := range ipAddrs {
+	for ipAddr, i := range ipAddrs {
 		filter := bson.M{
-			"ip_addr": s,
+			"status": hubtypes.StatusActive,
+			"info_fetch_timestamp": bson.M{
+				"$gt": time.Time{},
+			},
+			"info_fetch_error": "",
+			"ip_addr":          ipAddr,
+			"config_exchange_timestamp": bson.M{
+				"$gt": time.Time{},
+			},
+			"config_exchange_error": "",
+			"location_fetch_timestamp": bson.M{
+				"$gt": time.Time{},
+			},
+			"location_fetch_error": "",
 		}
 		update := bson.M{}
 
@@ -888,18 +901,7 @@ func updateDuplicateIPAddrs(ctx *context.Context) error {
 func updateOKs(ctx *context.Context) error {
 	log.Println("updateOKs")
 
-	filter := bson.M{}
-	update := bson.M{
-		"$set": bson.M{
-			"ok": false,
-		},
-	}
-
-	if _, err := database.TempRecordUpdateMany(ctx, filter, update); err != nil {
-		return err
-	}
-
-	filter = bson.M{
+	filter := bson.M{
 		"status": hubtypes.StatusActive,
 		"info_fetch_timestamp": bson.M{
 			"$gt": time.Time{},
@@ -918,7 +920,7 @@ func updateOKs(ctx *context.Context) error {
 		},
 		"location_fetch_error": "",
 	}
-	update = bson.M{
+	update := bson.M{
 		"$set": bson.M{
 			"ok": true,
 		},
