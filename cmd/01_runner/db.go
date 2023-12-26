@@ -18,6 +18,11 @@ func createIndexes(ctx *context.Context) error {
 			Options: options.Index().
 				SetUnique(true),
 		},
+		{
+			Keys: bson.D{
+				bson.E{Key: "ip_addr", Value: 1},
+			},
+		},
 	}
 
 	_, err := database.RecordIndexesCreateMany(ctx, indexes)
