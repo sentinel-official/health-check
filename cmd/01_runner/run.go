@@ -797,9 +797,22 @@ func updateDuplicateIPAddrs(ctx *context.Context) error {
 	log.Println("updateDuplicateIPAddrs")
 
 	filter := bson.M{
+		"status": hubtypes.StatusActive,
+		"info_fetch_timestamp": bson.M{
+			"$gt": time.Time{},
+		},
+		"info_fetch_error": "",
 		"ip_addr": bson.M{
 			"$exists": true,
 		},
+		"config_exchange_timestamp": bson.M{
+			"$gt": time.Time{},
+		},
+		"config_exchange_error": "",
+		"location_fetch_timestamp": bson.M{
+			"$gt": time.Time{},
+		},
+		"location_fetch_error": "",
 	}
 
 	records, err := database.RecordFindAll(ctx, filter)
@@ -864,6 +877,9 @@ func updateOKs(ctx *context.Context) error {
 			"$gt": time.Time{},
 		},
 		"info_fetch_error": "",
+		"ip_addr": bson.M{
+			"$exists": true,
+		},
 		"config_exchange_timestamp": bson.M{
 			"$gt": time.Time{},
 		},
