@@ -29,6 +29,10 @@ func (c *Context) Tx(messages ...sdk.Msg) (resp *sdk.TxResponse, err error) {
 			return nil, err
 		}
 
+		if len(messages) < 5 {
+			gas = gas + 50_000
+		}
+
 		txf = txf.WithGas(gas)
 	}
 
