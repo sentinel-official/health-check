@@ -36,10 +36,6 @@ import (
 
 func startTransaction(ctx *context.Context) error {
 	filter := bson.M{}
-	if _, err := database.TempRecordDeleteMany(ctx, filter); err != nil {
-		return err
-	}
-
 	projection := bson.M{
 		"addr":            1,
 		"client_config":   1,
@@ -52,6 +48,10 @@ func startTransaction(ctx *context.Context) error {
 
 	items, err := database.RecordFindAll(ctx, filter, opts)
 	if err != nil {
+		return err
+	}
+
+	if _, err := database.TempRecordDeleteMany(ctx, filter); err != nil {
 		return err
 	}
 
@@ -795,7 +795,10 @@ func updateClients(ctx *context.Context) error {
 	group.SetLimit(64)
 
 	for i := 0; i < len(records); i++ {
-		log.Println(i, records[i].Addr, records[i].SubscriptionID, records[i].SessionID)
+		if i%100 == 0 {
+			log.Println(i, records[i].Addr, records[i].SubscriptionID, records[i].SessionID)
+		}
+
 		nodeAddr := records[i].Addr
 		group.Go(func() error {
 			args := strings.Split(
@@ -935,12 +938,12 @@ func updateOKs(ctx *context.Context) error {
 
 func commitTransaction(ctx *context.Context) error {
 	filter := bson.M{}
-	if _, err := database.RecordDeleteMany(ctx, filter); err != nil {
+	items, err := database.TempRecordFindAll(ctx, filter)
+	if err != nil {
 		return err
 	}
 
-	items, err := database.TempRecordFindAll(ctx, filter)
-	if err != nil {
+	if _, err := database.RecordDeleteMany(ctx, filter); err != nil {
 		return err
 	}
 
