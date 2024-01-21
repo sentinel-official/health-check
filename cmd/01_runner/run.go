@@ -251,6 +251,10 @@ func cancelSubscriptions(ctx *context.Context, maxMsgs int) error {
 	if len(msgs) == 0 {
 		return nil
 	}
+
+	random.Shuffle(len(msgs), func(i, j int) {
+		msgs[i], msgs[j] = msgs[j], msgs[i]
+	})
 	if len(msgs) > maxMsgs {
 		msgs = msgs[0:maxMsgs]
 	}
@@ -319,6 +323,10 @@ func startSubscriptions(ctx *context.Context, maxMsgs int, maxGigabytePrice int6
 	if len(msgs) == 0 {
 		return nil
 	}
+
+	random.Shuffle(len(msgs), func(i, j int) {
+		msgs[i], msgs[j] = msgs[j], msgs[i]
+	})
 	if len(msgs) > maxMsgs {
 		msgs = msgs[0:maxMsgs]
 	}
@@ -458,6 +466,10 @@ func endSessions(ctx *context.Context, maxMsgs int) error {
 	if len(msgs) == 0 {
 		return nil
 	}
+
+	random.Shuffle(len(msgs), func(i, j int) {
+		msgs[i], msgs[j] = msgs[j], msgs[i]
+	})
 	if len(msgs) > maxMsgs {
 		msgs = msgs[0:maxMsgs]
 	}
@@ -524,6 +536,10 @@ func startSessions(ctx *context.Context, maxMsgs int) error {
 	if len(msgs) == 0 {
 		return nil
 	}
+
+	random.Shuffle(len(msgs), func(i, j int) {
+		msgs[i], msgs[j] = msgs[j], msgs[i]
+	})
 	if len(msgs) > maxMsgs {
 		msgs = msgs[0:maxMsgs]
 	}
