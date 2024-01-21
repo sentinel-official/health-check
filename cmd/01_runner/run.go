@@ -252,27 +252,27 @@ func cancelSubscriptions(ctx *context.Context, maxMsgs int) error {
 		return nil
 	}
 
-	random.Shuffle(len(msgs), func(i, j int) {
-		msgs[i], msgs[j] = msgs[j], msgs[i]
-	})
-	if len(msgs) > maxMsgs {
-		msgs = msgs[0:maxMsgs]
-	}
+	for start, end := 0, 0; start < len(msgs); start = end {
+		end = start + maxMsgs
+		if end > len(msgs) {
+			end = len(msgs)
+		}
 
-	resp, err := ctx.Tx(msgs...)
-	if err != nil {
-		return err
-	}
+		resp, err := ctx.Tx(msgs[start:end]...)
+		if err != nil {
+			return err
+		}
 
-	result, err := ctx.QueryTxWithRetry(resp.TxHash)
-	if err != nil {
-		return err
-	}
-	if result == nil {
-		return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
-	}
-	if !result.TxResult.IsOK() {
-		return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
+		result, err := ctx.QueryTxWithRetry(resp.TxHash)
+		if err != nil {
+			return err
+		}
+		if result == nil {
+			return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
+		}
+		if !result.TxResult.IsOK() {
+			return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
+		}
 	}
 
 	return nil
@@ -324,64 +324,64 @@ func startSubscriptions(ctx *context.Context, maxMsgs int, maxGigabytePrice int6
 		return nil
 	}
 
-	random.Shuffle(len(msgs), func(i, j int) {
-		msgs[i], msgs[j] = msgs[j], msgs[i]
-	})
-	if len(msgs) > maxMsgs {
-		msgs = msgs[0:maxMsgs]
-	}
+	for start, end := 0, 0; start < len(msgs); start = end {
+		end = start + maxMsgs
+		if end > len(msgs) {
+			end = len(msgs)
+		}
 
-	resp, err := ctx.Tx(msgs...)
-	if err != nil {
-		return err
-	}
+		resp, err := ctx.Tx(msgs[start:end]...)
+		if err != nil {
+			return err
+		}
 
-	result, err := ctx.QueryTxWithRetry(resp.TxHash)
-	if err != nil {
-		return err
-	}
-	if result == nil {
-		return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
-	}
-	if !result.TxResult.IsOK() {
-		return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
-	}
+		result, err := ctx.QueryTxWithRetry(resp.TxHash)
+		if err != nil {
+			return err
+		}
+		if result == nil {
+			return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
+		}
+		if !result.TxResult.IsOK() {
+			return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
+		}
 
-	for _, event := range result.TxResult.Events {
-		if event.Type == "sentinel.node.v2.EventCreateSubscription" {
-			var (
-				id       uint64
-				nodeAddr string
-			)
-
-			for _, attribute := range event.Attributes {
+		for _, event := range result.TxResult.Events {
+			if event.Type == "sentinel.node.v2.EventCreateSubscription" {
 				var (
-					key   = string(attribute.Key)
-					value = string(attribute.Value)
+					id       uint64
+					nodeAddr string
 				)
 
-				switch key {
-				case "id":
-					id, err = strconv.ParseUint(value[1:len(value)-1], 10, 64)
-					if err != nil {
-						return err
+				for _, attribute := range event.Attributes {
+					var (
+						key   = string(attribute.Key)
+						value = string(attribute.Value)
+					)
+
+					switch key {
+					case "id":
+						id, err = strconv.ParseUint(value[1:len(value)-1], 10, 64)
+						if err != nil {
+							return err
+						}
+					case "node_address":
+						nodeAddr = value[1 : len(value)-1]
 					}
-				case "node_address":
-					nodeAddr = value[1 : len(value)-1]
 				}
-			}
 
-			filter := bson.M{
-				"addr": nodeAddr,
-			}
-			update := bson.M{
-				"$set": bson.M{
-					"subscription_id": id,
-				},
-			}
+				filter := bson.M{
+					"addr": nodeAddr,
+				}
+				update := bson.M{
+					"$set": bson.M{
+						"subscription_id": id,
+					},
+				}
 
-			if _, err := database.TempRecordFindOneAndUpdate(ctx, filter, update); err != nil {
-				return err
+				if _, err := database.TempRecordFindOneAndUpdate(ctx, filter, update); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -467,27 +467,27 @@ func endSessions(ctx *context.Context, maxMsgs int) error {
 		return nil
 	}
 
-	random.Shuffle(len(msgs), func(i, j int) {
-		msgs[i], msgs[j] = msgs[j], msgs[i]
-	})
-	if len(msgs) > maxMsgs {
-		msgs = msgs[0:maxMsgs]
-	}
+	for start, end := 0, 0; start < len(msgs); start = end {
+		end = start + maxMsgs
+		if end > len(msgs) {
+			end = len(msgs)
+		}
 
-	resp, err := ctx.Tx(msgs...)
-	if err != nil {
-		return err
-	}
+		resp, err := ctx.Tx(msgs[start:end]...)
+		if err != nil {
+			return err
+		}
 
-	result, err := ctx.QueryTxWithRetry(resp.TxHash)
-	if err != nil {
-		return err
-	}
-	if result == nil {
-		return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
-	}
-	if !result.TxResult.IsOK() {
-		return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
+		result, err := ctx.QueryTxWithRetry(resp.TxHash)
+		if err != nil {
+			return err
+		}
+		if result == nil {
+			return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
+		}
+		if !result.TxResult.IsOK() {
+			return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
+		}
 	}
 
 	return nil
@@ -537,64 +537,64 @@ func startSessions(ctx *context.Context, maxMsgs int) error {
 		return nil
 	}
 
-	random.Shuffle(len(msgs), func(i, j int) {
-		msgs[i], msgs[j] = msgs[j], msgs[i]
-	})
-	if len(msgs) > maxMsgs {
-		msgs = msgs[0:maxMsgs]
-	}
+	for start, end := 0, 0; start < len(msgs); start = end {
+		end = start + maxMsgs
+		if end > len(msgs) {
+			end = len(msgs)
+		}
 
-	resp, err := ctx.Tx(msgs...)
-	if err != nil {
-		return err
-	}
+		resp, err := ctx.Tx(msgs[start:end]...)
+		if err != nil {
+			return err
+		}
 
-	result, err := ctx.QueryTxWithRetry(resp.TxHash)
-	if err != nil {
-		return err
-	}
-	if result == nil {
-		return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
-	}
-	if !result.TxResult.IsOK() {
-		return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
-	}
+		result, err := ctx.QueryTxWithRetry(resp.TxHash)
+		if err != nil {
+			return err
+		}
+		if result == nil {
+			return fmt.Errorf("nil query result for the transaction %s", resp.TxHash)
+		}
+		if !result.TxResult.IsOK() {
+			return fmt.Errorf("transaction %s failed with the code %d", resp.TxHash, result.TxResult.Code)
+		}
 
-	for _, event := range result.TxResult.Events {
-		if event.Type == "sentinel.session.v2.EventStart" {
-			var (
-				id       uint64
-				nodeAddr string
-			)
-
-			for _, attribute := range event.Attributes {
+		for _, event := range result.TxResult.Events {
+			if event.Type == "sentinel.session.v2.EventStart" {
 				var (
-					key   = string(attribute.Key)
-					value = string(attribute.Value)
+					id       uint64
+					nodeAddr string
 				)
 
-				switch key {
-				case "id":
-					id, err = strconv.ParseUint(value[1:len(value)-1], 10, 64)
-					if err != nil {
-						return err
+				for _, attribute := range event.Attributes {
+					var (
+						key   = string(attribute.Key)
+						value = string(attribute.Value)
+					)
+
+					switch key {
+					case "id":
+						id, err = strconv.ParseUint(value[1:len(value)-1], 10, 64)
+						if err != nil {
+							return err
+						}
+					case "node_address":
+						nodeAddr = value[1 : len(value)-1]
 					}
-				case "node_address":
-					nodeAddr = value[1 : len(value)-1]
 				}
-			}
 
-			filter := bson.M{
-				"addr": nodeAddr,
-			}
-			update := bson.M{
-				"$set": bson.M{
-					"session_id": id,
-				},
-			}
+				filter := bson.M{
+					"addr": nodeAddr,
+				}
+				update := bson.M{
+					"$set": bson.M{
+						"session_id": id,
+					},
+				}
 
-			if _, err := database.TempRecordFindOneAndUpdate(ctx, filter, update); err != nil {
-				return err
+				if _, err := database.TempRecordFindOneAndUpdate(ctx, filter, update); err != nil {
+					return err
+				}
 			}
 		}
 	}

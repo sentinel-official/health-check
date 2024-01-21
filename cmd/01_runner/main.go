@@ -2,9 +2,7 @@ package main
 
 import (
 	"log"
-	"math/rand"
 	"os"
-	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/spf13/cobra"
@@ -13,8 +11,6 @@ import (
 )
 
 const appName = "01_runner"
-
-var random = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
