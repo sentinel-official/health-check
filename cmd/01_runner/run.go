@@ -211,7 +211,6 @@ func cancelSubscriptions(ctx *context.Context, maxMsgs int) error {
 			return err
 		}
 		if record == nil {
-			log.Println("MsgCancelRequest", subscriptions[i].GetID())
 			msgs = append(
 				msgs,
 				&subscriptiontypes.MsgCancelRequest{
@@ -304,7 +303,6 @@ func startSubscriptions(ctx *context.Context, maxMsgs int, maxGigabytePrice int6
 	)
 
 	for i := 0; i < len(records); i++ {
-		log.Println("MsgSubscribeRequest", records[i].Addr)
 		msgs = append(
 			msgs,
 			&nodetypes.MsgSubscribeRequest{
@@ -420,7 +418,6 @@ func endSessions(ctx *context.Context, maxMsgs int) error {
 			return err
 		}
 		if record == nil {
-			log.Println("MsgEndRequest", sessions[i].ID)
 			msgs = append(
 				msgs,
 				&sessiontypes.MsgEndRequest{
@@ -513,7 +510,6 @@ func startSessions(ctx *context.Context, maxMsgs int) error {
 	)
 
 	for i := 0; i < len(records); i++ {
-		log.Println("MsgStartRequest", records[i].SubscriptionID)
 		msgs = append(
 			msgs,
 			&sessiontypes.MsgStartRequest{
